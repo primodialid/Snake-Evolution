@@ -32,13 +32,13 @@ class DeviceSelectionScene extends Phaser.Scene {
 class MenuScene extends Phaser.Scene {
     constructor() { super('MenuScene'); }
     create() {
-        this.add.text(V_WIDTH/2, 50, 'Game Project By Gregorios Bayu K.', { fontSize: '18px', fill: '#fbbf24', fontStyle: 'italic' }).setOrigin(0.5);
+        // Request: Menambahkan nama Agustinus Dwi P.
+        this.add.text(V_WIDTH/2, 50, 'Game Project By Gregorios Bayu K. and Agustinus Dwi P.', { fontSize: '16px', fill: '#fbbf24', fontStyle: 'italic' }).setOrigin(0.5);
         this.add.text(V_WIDTH/2, 110, 'SNAKE EVOLUTION', { fontSize: '46px', fill: '#4caf50', fontStyle: 'bold' }).setOrigin(0.5);
         
-        // Penjelasan Kontrol Tambahan Sesuai Request
-        let infoBox = this.add.rectangle(V_WIDTH/2, 200, 500, 70, 0x1e293b).setStrokeStyle(2, 0x475569);
+        let infoBox = this.add.rectangle(V_WIDTH/2, 200, 520, 70, 0x1e293b).setStrokeStyle(2, 0x475569);
         let infoText = isMobileMode 
-            ? "KONTROL HP:\n- Tekan tombol panah untuk belok\n- TAHAN tombol panah lama-lama untuk LARI CEPAT!" 
+            ? "KONTROL HP:\n- Tekan tombol panah besar untuk belok\n- TAHAN tombol panah lama-lama untuk LARI CEPAT!" 
             : "KONTROL LAPTOP:\n- Gunakan tombol Keyboard PANAH atau W, A, S, D\n- TAHAN tombol keyboard tersebut untuk LARI CEPAT!";
         this.add.text(V_WIDTH/2, 200, infoText, { fontSize: '14px', fill: '#cbd5e1', align: 'center' }).setOrigin(0.5);
 
@@ -92,12 +92,15 @@ class GameScene extends Phaser.Scene {
         this.moveTimer = 0;
         this.isDead = false;
         this.score = 0;
-        this.isTurboActive = false; // Status apakah lari cepat aktif
-        this.playAreaHeight = isMobileMode ? 420 : 600;
+        this.isTurboActive = false; 
+        this.playAreaHeight = isMobileMode ? 400 : 600;
+
+        // Request: Menggambar pembatas dinding luar arena bermain
+        let borders = this.add.graphics();
+        borders.lineStyle(4, 0x64748b); // Warna abu-abu pembatas solid
+        borders.strokeRect(0, 0, V_WIDTH, this.playAreaHeight);
 
         if (isMobileMode) {
-            let line = this.add.graphics();
-            line.lineStyle(4, 0x475569).lineBetween(0, 420, V_WIDTH, 420);
             this.createMobileControls();
         }
 
@@ -113,23 +116,29 @@ class GameScene extends Phaser.Scene {
 
         this.scoreText = this.add.text(20, 20, 'SKOR: 0', { fontSize: '20px', fill: '#fff', fontStyle: 'bold' });
         
-        // Setup Keyboard Input (Panah + WASD)
         this.cursors = this.input.keyboard.createCursorKeys();
         this.wasd = this.input.keyboard.addKeys('W,A,S,D');
     }
 
     createMobileControls() {
-        const btnSize = 55; const cx = V_WIDTH / 2; const cy = 510;
-        let btnUp = this.add.rectangle(cx, cy - 35, btnSize, btnSize, 0x475569).setInteractive();
-        this.add.text(cx, cy - 35, '▲', { fontSize: '20px' }).setOrigin(0.5);
-        let btnDown = this.add.rectangle(cx, cy + 35, btnSize, btnSize, 0x475569).setInteractive();
-        this.add.text(cx, cy + 35, '▼', { fontSize: '20px' }).setOrigin(0.5);
-        let btnLeft = this.add.rectangle(cx - 75, cy, btnSize, btnSize, 0x475569).setInteractive();
-        this.add.text(cx - 75, cy, '◄', { fontSize: '20px' }).setOrigin(0.5);
-        let btnRight = this.add.rectangle(cx + 75, cy, btnSize, btnSize, 0x475569).setInteractive();
-        this.add.text(cx + 75, cy, '►', { fontSize: '20px' }).setOrigin(0.5);
+        // Request: Ukuran tombol HP dinaikkan dari 55 ke 72 (Lebih besar & empuk)
+        const btnSize = 72; 
+        const cx = V_WIDTH / 2; 
+        const cy = 505;
+        const gap = 48; // Jarak tombol agar pas di jari
 
-        // Fitur Tahan Lama untuk Turbo di HP
+        let btnUp = this.add.rectangle(cx, cy - gap, btnSize, btnSize, 0x475569).setInteractive();
+        this.add.text(cx, cy - gap, '▲', { fontSize: '26px', fill: '#fff' }).setOrigin(0.5);
+        
+        let btnDown = this.add.rectangle(cx, cy + gap, btnSize, btnSize, 0x475569).setInteractive();
+        this.add.text(cx, cy + gap, '▼', { fontSize: '26px', fill: '#fff' }).setOrigin(0.5);
+        
+        let btnLeft = this.add.rectangle(cx - 95, cy, btnSize, btnSize, 0x475569).setInteractive();
+        this.add.text(cx - 95, cy, '◄', { fontSize: '26px', fill: '#fff' }).setOrigin(0.5);
+        
+        let btnRight = this.add.rectangle(cx + 95, cy, btnSize, btnSize, 0x475569).setInteractive();
+        this.add.text(cx + 95, cy, '►', { fontSize: '26px', fill: '#fff' }).setOrigin(0.5);
+
         const setupTurboButton = (btn, dir, oppDir) => {
             btn.on('pointerdown', () => { 
                 if (this.direction !== oppDir) this.nextDirection = dir; 
@@ -148,7 +157,6 @@ class GameScene extends Phaser.Scene {
     update(time, delta) {
         if (this.isDead) return;
 
-        // Cek Deteksi Input Keyboard Laptop (Panah atau WASD)
         let leftPressed = this.cursors.left.isDown || this.wasd.A.isDown;
         let rightPressed = this.cursors.right.isDown || this.wasd.D.isDown;
         let upPressed = this.cursors.up.isDown || this.wasd.W.isDown;
@@ -159,13 +167,11 @@ class GameScene extends Phaser.Scene {
         else if (upPressed && this.direction !== 'DOWN') this.nextDirection = 'UP';
         else if (downPressed && this.direction !== 'UP') this.nextDirection = 'DOWN';
 
-        // Jika di laptop ada tombol yang sedang ditahan, aktifkan Turbo Akselerasi
         if (!isMobileMode) {
             this.isTurboActive = (leftPressed || rightPressed || upPressed || downPressed);
         }
 
         this.moveTimer += delta;
-        // Menentukan jeda jalan berdasarkan status turbo aktif/tidak
         let currentInterval = this.isTurboActive ? SPEED_TURBO : SPEED_NORMAL;
 
         if (this.moveTimer > currentInterval) { 
@@ -175,29 +181,46 @@ class GameScene extends Phaser.Scene {
     }
 
     handleMove() {
-        const body = this.snake.getChildren(); const head = body[0]; const oldPos = { x: head.x, y: head.y };
+        const body = this.snake.getChildren(); 
+        const head = body[0]; 
+        
+        // Simpan semua riwayat posisi badan sebelum bergerak
+        let previousPositions = [];
+        body.forEach(part => {
+            previousPositions.push({ x: part.x, y: part.y });
+        });
+
         this.direction = this.nextDirection;
 
+        // Gerakkan kepala ular terlebih dahulu
         if (this.direction === 'LEFT') head.x -= GRID;
         else if (this.direction === 'RIGHT') head.x += GRID;
         else if (this.direction === 'UP') head.y -= GRID;
         else if (this.direction === 'DOWN') head.y += GRID;
 
-        if (head.x < 0 || head.x >= V_WIDTH || head.y < 0 || head.y >= this.playAreaHeight) return this.die();
+        // Request: Aturan menembus dinding dan muncul di bagian sebaliknya secara presisi per blok
+        if (head.x < 0) head.x = V_WIDTH - GRID;
+        else if (head.x >= V_WIDTH) head.x = 0;
+        
+        if (head.y < 0) head.y = this.playAreaHeight - GRID;
+        else if (head.y >= this.playAreaHeight) head.y = 0;
 
-        let prevX = oldPos.x; let prevY = oldPos.y;
+        // Gerakkan sisa tubuh mengalir mengikuti riwayat posisi satu-satu per blok
         for (let i = 1; i < body.length; i++) {
-            if (head.x === body[i].x && head.y === body[i].y) return this.die();
-            let tx = body[i].x; let ty = body[i].y;
-            body[i].setPosition(prevX, prevY);
-            prevX = tx; prevY = ty;
+            // Cek jika kepala menabrak badannya sendiri (kecuali ekor paling belakang yang mau bergerak)
+            if (head.x === previousPositions[i].x && head.y === previousPositions[i].y && i !== body.length - 1) {
+                return this.die();
+            }
+            body[i].setPosition(previousPositions[i-1].x, previousPositions[i-1].y);
         }
 
+        // Cek jika makan buah apel
         this.apples.getChildren().forEach(apple => {
             if (head.x === apple.x && head.y === apple.y) {
-                this.score += 10; this.scoreText.setText('SKOR: ' + this.score);
-                let lastPart = body[body.length - 1];
-                this.snake.create(lastPart.x, lastPart.y, 'part_' + selectedSkin).setOrigin(0);
+                this.score += 10; 
+                this.scoreText.setText('SKOR: ' + this.score);
+                let lastPos = previousPositions[previousPositions.length - 1];
+                this.snake.create(lastPos.x, lastPos.y, 'part_' + selectedSkin).setOrigin(0);
                 this.repositionSingleApple(apple);
             }
         });
